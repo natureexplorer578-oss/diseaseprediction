@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medical AI Analyzer</title>
+
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 0;
+
+        /* ✅ Medical Background Image */
+        background-image: url("https://images.unsplash.com/photo-1586773860418-d37222d8fce3");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* ✅ Light overlay */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.3);
+        z-index: -1;
+    }
+
+       .container {
+    width: 60%;
+    margin: auto;
+    margin-top: 40px;
+    padding: 25px;
+    border-radius: 15px;
+
+    background: rgba(255, 255, 255, 0.2); /* transparent */
+    backdrop-filter: blur(10px);          /* glass effect */
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+    h1 {
+        text-align: center;
+        color: #1976d2;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    input {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 20px;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #1976d2;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .card {
+        padding: 20px;
+        margin: 12px 0;
+        border-radius: 12px;
+        color: white;
+    }
+
+    .low { background: #4caf50; }
+    .medium { background: #ff9800; }
+    .high { background: #f44336; }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🏥 Medical Report Analyzer</h1>
+
+    <div class="grid">
+        <input id="glucose" placeholder="Glucose">
+        <input id="bmi" placeholder="BMI">
+        <input id="age" placeholder="Age">
+
+        <input id="sex" placeholder="Sex (0/1)">
+        <input id="cp" placeholder="Chest Pain (0-3)">
+        <input id="trestbps" placeholder="Blood Pressure">
+
+        <input id="chol" placeholder="Cholesterol">
+        <input id="thalch" placeholder="Heart Rate">
+        <input id="oldpeak" placeholder="Oldpeak">
+
+        <input id="exang" placeholder="Exercise Induced Angina (0/1)">
+
+        <input id="bgr" placeholder="Blood Glucose (CKD)">
+        <input id="bu" placeholder="Urea">
+        <input id="sc" placeholder="Creatinine">
+        <input id="hemo" placeholder="Hemoglobin">
+    </div>
+
+    <button onclick="predict()">Analyze Report</button>
+
+    <div class="result" id="result"></div>
+
+</div>
+
+<script>
+function getColor(level) {
+    return level.toLowerCase();
+}
+
+function predict() {
+
+    const inputs = document.querySelectorAll("input");
+    for (let input of inputs) {
+        if (input.value === "") {
+            alert("Please fill all fields");
+            return;
+        }
+    }
+
+    const data = {
+        glucose: parseFloat(document.getElementById("glucose").value),
+        bmi: parseFloat(document.getElementById("bmi").value),
+        age: parseFloat(document.getElementById("age").value),
+
+        sex: parseInt(document.getElementById("sex").value),
+        cp: parseInt(document.getElementById("cp").value),
+        trestbps: parseFloat(document.getElementById("trestbps").value),
+
+        chol: parseFloat(document.getElementById("chol").value),
+        thalch: parseFloat(document.getElementById("thalch").value),
+        oldpeak: parseFloat(document.getElementById("oldpeak").value),
+        exang: parseInt(document.getElementById("exang").value),
+
+        bp: parseFloat(document.getElementById("trestbps").value),
+        bgr: parseFloat(document.getElementById("bgr").value),
+        bu: parseFloat(document.getElementById("bu").value),
+        sc: parseFloat(document.getElementById("sc").value),
+        hemo: parseFloat(document.getElementById("hemo").value)
+    };
+
+    document.getElementById("result").innerHTML = "<p>Analyzing... ⏳</p>";
+
+    fetch("/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("result").innerHTML = `
+
+        <div class="card ${getColor(data.diabetes.level)}">
+            <h3>🩸 Diabetes</h3>
+            <p><b>Risk:</b> ${data.diabetes.level}</p>
+            <p><b>Score:</b> ${data.diabetes.score.toFixed(2)}</p>
+        </div>
+
+        <div class="card ${getColor(data.heart.level)}">
+            <h3>❤️ Heart Disease</h3>
+            <p><b>Risk:</b> ${data.heart.level}</p>
+            <p><b>Score:</b> ${data.heart.score.toFixed(2)}</p>
+        </div>
+
+        <div class="card ${getColor(data.ckd.level)}">
+            <h3>🧪 Kidney Disease</h3>
+            <p><b>Risk:</b> ${data.ckd.level}</p>
+            <p><b>Score:</b> ${data.ckd.score.toFixed(2)}</p>
+        </div>
+
+        `;
+    })
+    .catch(err => {
+        document.getElementById("result").innerHTML =
+            "<p style='color:red;'>Error occurred. Check backend.</p>";
+        console.log(err);
+    });
+}
+</script>
+
+</body>
+</html>
