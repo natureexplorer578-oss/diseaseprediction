@@ -4,9 +4,9 @@ import joblib
 app = Flask(__name__)
 
 # Load models
-diabetes_model = joblib.load("models/diabetes_model.pkl")
-heart_model = joblib.load("models/heart_model.pkl")
-ckd_model = joblib.load("models/ckd_model.pkl")
+diabetes_model = joblib.load("diabetes_model.pkl")
+heart_model = joblib.load("heart_model.pkl")
+ckd_model = joblib.load("ckd_model.pkl")
 
 
 
